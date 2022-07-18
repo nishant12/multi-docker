@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t nishant/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true nishant/react-test npm test
+
+after_success:
+  - docker build -t nishant/multi-client ./client
+  - docker build -t nishant/multi-nginx ./nginx
+  - docker build -t nishant/multi-server ./server
+  - docker build -t nishant/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push nishant/multi-client
+  - docker push nishant/multi-nginx
+  - docker push nishant/multi-server
+  - docker push nishant/multi-worker
